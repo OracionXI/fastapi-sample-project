@@ -29,6 +29,16 @@ jobs:
           pip install --no-cache-dir -r app/requirements.txt
           pip install pytest
 
-      - name: Run Tests
+      - name: Unit Tests
         run: |
           pytest app/tests/
+
+      - name: Lint Tests
+        uses: wearerequired/lint-action@v2
+        with:
+          flake8: true
+
+      - name: SonarCloud Code Quality Tests
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
