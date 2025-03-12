@@ -3,15 +3,15 @@ name: Docker Build Check
 on:
   push:
     branches:
-      - feature/docker-configuration
-  pull_request:
-    branches:
-      - feature/docker-configuration
+      - feature/docker-configure
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   build-docker:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -25,11 +25,35 @@ jobs:
       - name: Dry run docker build process
         run: |
           docker build --progress=plain --no-cache -t test-image .
-          
+
       - name: Security Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'test-image'
-          format: 'table'
+          image-ref: "test-image"
+          format: "table"
           exit-code: 1
-          severity: 'CRITICAL,HIGH'
+          severity: "CRITICAL,HIGH"
+
+  create-pull-request:
+    needs: build-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }}
+        run: |
+          if gh pr list \
+          --base development \
+          --head feature/docker-configure --state open | grep -q "feature/docker-configure"; \
+          then echo "PR exists"
+          else
+            gh pr create \
+              --base development \
+              --head feature/docker-configure \
+              --title "Auto PR: Merge feature/docker-configure into development" \
+              --body "This pull request was automatically created by GitHub Actions."
+            echo "PR created successfully."
+          fi
