@@ -43,7 +43,7 @@ jobs:
 
       - name: Create Pull Request
         env:
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
           if gh pr list \
           --base development \
